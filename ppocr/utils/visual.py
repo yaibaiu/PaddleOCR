@@ -38,6 +38,8 @@ def draw_ser_results(image,
 
     font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
     for ocr_info in ocr_results:
+        if 'pred_id' not in ocr_info.keys():
+            continue
         if ocr_info["pred_id"] not in color_map:
             continue
         color = color_map[ocr_info["pred_id"]]

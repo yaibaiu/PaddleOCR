@@ -1,8 +1,8 @@
 python3 tools/infer_kie_token_ser.py \
-  -c configs/kie/layoutlm_series/ser_layoutlmv2_test.yml \
-  -o Architecture.Backbone.checkpoints=./output/ser_layoutlmv2_xfund_zh/best_model \
-  Global.infer_img=/media/yaiba/Yaiba/dataset_fakereal/dataset/NongYe/nongyev1_real_1009
-
+  -c configs/kie/vi_layoutxlm/ser_vi_layoutxlm_custom.yml \
+  -o Architecture.Backbone.checkpoints=./output/ser_vi_layoutxlm_0303/best_model \
+  Global.infer_img=/home/yaiba/project/KIE/dataset/data_crawl/jianshe_2/HRK202311161250460029614.jpg \
+  Global.save_res_path=output/ser/jianshe_1
 
 
 

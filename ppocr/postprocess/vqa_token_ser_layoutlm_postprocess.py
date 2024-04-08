@@ -70,6 +70,7 @@ class VQASerTokenLayoutLMPostProcess(object):
 
         for pred, segment_offset_id, ocr_info in zip(preds, segment_offset_ids,
                                                      ocr_infos):
+            prob_pred = np.max(pred, axis=1)
             pred = np.argmax(pred, axis=1)
             pred = [self.id2label_map[idx] for idx in pred]
 
@@ -81,6 +82,7 @@ class VQASerTokenLayoutLMPostProcess(object):
 
                 end_id = segment_offset_id[idx]
 
+                curr_prob_pred = prob_pred[start_id:end_id]
                 curr_pred = pred[start_id:end_id]
                 curr_pred = [self.label2id_map_for_draw[p] for p in curr_pred]
 
@@ -89,8 +91,10 @@ class VQASerTokenLayoutLMPostProcess(object):
                 else:
                     counts = np.bincount(curr_pred)
                     pred_id = np.argmax(counts)
+                    curr_prob_pred = np.max(curr_prob_pred)
                 ocr_info[idx]["pred_id"] = int(pred_id)
                 ocr_info[idx]["pred"] = self.id2label_map_for_show[int(pred_id)]
+                ocr_info[idx]["conf"] = curr_prob_pred
             results.append(ocr_info)
         return results
 

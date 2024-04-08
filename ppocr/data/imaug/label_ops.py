@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 import copy
 import numpy as np
 import string
+import re
 from shapely.geometry import LineString, Point, Polygon
 import json
 import copy
@@ -1046,6 +1047,28 @@ class VQATokenLabelEncode(object):
             x1 += (len(word) + 1) * unit_w
         return token_bboxes
 
+    def split_bbox_1(self, bbox, text, tokenizer):
+        if "*" in text:
+            pattern = r'(\D+)(\d+\s*\*+\s*\d+)'
+        else:
+            pattern = r'(\D+)(\d+)'
+
+        result = re.findall(pattern, text)
+        if result:
+            words = list(result[0])
+        else:
+            words = text
+
+        token_bboxes = []
+        x1, y1, x2, y2 = bbox
+        unit_w = (x2 - x1) / len(text)
+        for idx, word in enumerate(words):
+            curr_w = len(word) * unit_w
+            word_bbox = [x1, y1, x1 + curr_w, y2]
+            token_bboxes.extend([word_bbox] * len(tokenizer.tokenize(word)))
+            x1 += (len(word) + 1) * unit_w
+        return token_bboxes
+
     def filter_empty_contents(self, ocr_info):
         """
         find out the empty texts and remove the links
@@ -1134,7 +1157,7 @@ class VQATokenLabelEncode(object):
             if self.use_textline_bbox_info:
                 bbox = [info["bbox"]] * len(encode_res["input_ids"])
             else:
-                bbox = self.split_bbox(info["bbox"], info["transcription"],
+                bbox = self.split_bbox_1(info["bbox"], info["transcription"],
                                        self.tokenizer)
             if len(bbox) <= 0:
                 continue

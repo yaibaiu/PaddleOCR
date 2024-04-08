@@ -1,1 +1,1 @@
-python3 tools/train.py -c configs/kie/layoutlm_series/ser_layoutlmv2_test.yml
+python3 tools/train.py -c configs/kie/vi_layoutxlm/ser_vi_layoutxlm_custom.yml

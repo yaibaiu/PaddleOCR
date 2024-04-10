@@ -100,15 +100,16 @@ class SerPredictor(object):
         self.model.eval()
 
     def __call__(self, data):
-        # with open(data["img_path"], 'rb') as f:
-        #     img = f.read()
-        # data["image"] = img
+        with open(data["img_path"], 'rb') as f:
+            img = f.read()
+        data["image"] = img
         batch = transform(data, self.ops)
         batch = to_tensor(batch)
         preds = self.model(batch)
 
         post_result = self.post_process_class(
             preds, segment_offset_ids=batch[6], ocr_infos=batch[7])
+
         return post_result, batch
 
 
@@ -143,16 +144,15 @@ if __name__ == '__main__':
             save_img_path = os.path.join(
                 config['Global']['save_res_path'],
                 os.path.splitext(os.path.basename(img_path))[0] + "_ser.jpg")
+
             result, _ = ser_engine(data)
             result = result[0]
-            # print(result)
-            # print(result)
-            # fout.write(img_path + "\t" + json.dumps(
-            #     {
-            #         "ocr_info": result,
-            #     }, ensure_ascii=False) + "\n")
-            # img_res = draw_ser_results(img_path, result, font_size=18)
-            # cv2.imwrite(save_img_path, img_res)
+            fout.write(img_path + "\t" + json.dumps(
+                {
+                    "ocr_info": result,
+                }, ensure_ascii=False) + "\n")
+            img_res = draw_ser_results(img_path, result)
+            cv2.imwrite(save_img_path, img_res)
 
-            # logger.info("process: [{}/{}], save result to {}".format(
-            #     idx, len(infer_imgs), save_img_path))
+            logger.info("process: [{}/{}], save result to {}".format(
+                idx, len(infer_imgs), save_img_path))

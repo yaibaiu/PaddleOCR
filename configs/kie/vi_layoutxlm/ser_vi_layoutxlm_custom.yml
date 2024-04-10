@@ -54,7 +54,7 @@ Optimizer:
     factor: 0.00000
     
 PostProcess:
-  name: VQASerTokenLayoutLMPostProcess
+  name: VQASerTokenLayoutLMPostProcessCustom
   class_path: &class_path train_data/data_0804/class_list.txt
 
 Metric:
@@ -76,7 +76,7 @@ Train:
           contains_re: False
           algorithm: *algorithm
           class_path: *class_path
-          use_textline_bbox_info: False
+          use_textline_bbox_info: &use_textline_bbox_info True
           # one of [None, "tb-yx"]
           order_method: &order_method "tb-yx"
       - VQATokenPad:
@@ -114,7 +114,7 @@ Eval:
           contains_re: False
           algorithm: *algorithm
           class_path: *class_path
-          use_textline_bbox_info: False
+          use_textline_bbox_info: *use_textline_bbox_info
           order_method: *order_method
       - VQATokenPad:
           max_seq_len: *max_seq_len

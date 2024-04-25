@@ -1132,6 +1132,12 @@ class VQATokenLabelEncode(object):
                 encode_res["attention_mask"] = encode_res["attention_mask"][1:
                                                                             -1]
 
+            if 101 in encode_res["input_ids"]:
+                index_101 = encode_res["input_ids"].index(101)
+                encode_res["input_ids"].pop(index_101)
+                encode_res["token_type_ids"].pop(index_101)
+                encode_res["attention_mask"].pop(index_101)
+
             if self.use_textline_bbox_info:
                 bbox = [info["bbox"]] * len(encode_res["input_ids"])
             else:

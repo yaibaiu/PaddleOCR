@@ -20,6 +20,7 @@ import numpy as np
 
 import os
 import sys
+import tqdm
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(__dir__)
@@ -125,23 +126,20 @@ class SerPredictor(object):
 if __name__ == "__main__":
     config, device, logger, vdl_writer = program.preprocess()
     os.makedirs(config["Global"]["save_res_path"], exist_ok=True)
-    print(config)
     ser_engine = SerPredictor(config)
 
     bank_path_list = os.listdir(config["Global"]["infer_img"])
+    bank_path_list = ["C007"]
     for bank_name in bank_path_list:
         bank_path = os.path.join(config["Global"]["infer_img"], bank_name)
         infer_imgs = get_image_file_list(bank_path)
+        if infer_imgs is None:
+            continue
 
         with open(os.path.join(bank_path, "Cache.cach"), "w", encoding="utf-8") as fout:
             for idx, info in enumerate(infer_imgs):
-                print(info)
                 img_path = info
                 data = {"img_path": img_path}
-
-                # save_img_path = os.path.join(
-                #     config['Global']['save_res_path'],
-                #     os.path.splitext(os.path.basename(img_path))[0] + "_ser.jpg")
 
                 result, _ = ser_engine(data)
                 result = result[0]
@@ -156,7 +154,3 @@ if __name__ == "__main__":
                 fout.write(
                     img_path + "\t" + json.dumps(result, ensure_ascii=False) + "\n"
                 )
-                # img_res = draw_ser_results(img_path, result, font_size=18)
-
-                # logger.info("process: [{}/{}], save result to {}".format(
-                #     idx, len(infer_imgs), save_img_path))

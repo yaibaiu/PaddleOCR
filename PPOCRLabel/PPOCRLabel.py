@@ -1963,7 +1963,7 @@ class MainWindow(QMainWindow):
                                            None, None))
                     # linux
                 elif platform.system() == 'Linux':
-                    cmd = 'trash ' + deletePath
+                    cmd = 'rm ' + deletePath
                     os.system(cmd)
                     # macOS
                 elif platform.system() == 'Darwin':

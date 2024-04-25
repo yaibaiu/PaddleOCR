@@ -105,6 +105,7 @@ class VQASerTokenLayoutLMPostProcessCustom(object):
         super(VQASerTokenLayoutLMPostProcessCustom, self).__init__()
         label2id_map, self.id2label_map = load_vqa_bio_label_maps(class_path)
         from paddlenlp.transformers import LayoutXLMTokenizer
+
         self.tokenizer = LayoutXLMTokenizer.from_pretrained("layoutxlm-base-uncased")
 
         self.label2id_map_for_draw = dict()
@@ -130,8 +131,22 @@ class VQASerTokenLayoutLMPostProcessCustom(object):
         if isinstance(preds, paddle.Tensor):
             preds = preds.numpy()
 
-        if batch is None:
+        if batch is not None:
+            return self._metric(preds, batch[5])
+        else:
             return self._infer(preds, **kwargs)
+
+    def _metric(self, preds, label):
+        pred_idxs = preds.argmax(axis=2)
+        decode_out_list = [[] for _ in range(pred_idxs.shape[0])]
+        label_decode_out_list = [[] for _ in range(pred_idxs.shape[0])]
+
+        for i in range(pred_idxs.shape[0]):
+            for j in range(pred_idxs.shape[1]):
+                if label[i, j] != -100:
+                    label_decode_out_list[i].append(self.id2label_map[label[i, j]])
+                    decode_out_list[i].append(self.id2label_map[pred_idxs[i, j]])
+        return decode_out_list, label_decode_out_list
 
     def _infer(self, preds, segment_offset_ids, ocr_infos):
         results = []
@@ -157,32 +172,56 @@ class VQASerTokenLayoutLMPostProcessCustom(object):
                     pred_id = 0
                 else:
                     counts = np.bincount(curr_pred)
-                    number_split = sum(counts > 1)
+                    number_split = sum(counts > 0)
                     c = 0
                     if number_split > 1:
-                        token_text = self.tokenizer.tokenize(ocr_info[idx]["transcription"])
-                        idx_s = 1
+                        token_text = self.tokenizer.tokenize(
+                            ocr_info[idx]["transcription"]
+                        )
+                        print(token_text)
+                        print(curr_pred)
+                        if curr_pred[0] == "▁":
+                            counts = np.bincount(curr_pred[1:])
+                            idx_s = 1
+                        else:
+                            idx_s = 0
+
                         while idx_s < len(curr_pred):
                             c += 1
-                            idx_e = idx_s + counts[curr_pred[idx_s]]
                             pred_id = int(curr_pred[idx_s])
+                            # idx_e = idx_s + counts[pred_id]
+                            idx_e = idx_s
+                            while (
+                                idx_e < len(curr_pred)
+                                and curr_pred[idx_e] == curr_pred[idx_s]
+                            ):
+                                idx_e += 1
 
-                            if c < number_split:
-                                ocr_info[idx]["transcription"] = "".join(token_text[idx_s:idx_e])
+                            if c == 1:
+                                print("----------")
+                                print(ocr_info[idx]["transcription"])
+                                ocr_info[idx]["transcription"] = "".join(token_text[idx_s:idx_e]).replace("▁", "")  # fmt: skip
                                 ocr_info[idx]["pred_id"] = pred_id
-                                ocr_info[idx]["pred"] = self.id2label_map_for_show[pred_id]
+                                ocr_info[idx]["pred"] = self.id2label_map_for_show[
+                                    pred_id
+                                ]
+                                print(ocr_info[idx]["transcription"])
+
                             else:
+                                print("+++++++++++")
                                 ocr_info_new = {}
                                 ocr_info_new["bbox"] = ocr_info[idx]["bbox"]
                                 ocr_info_new["points"] = ocr_info[idx]["points"]
-                                ocr_info_new["transcription"] = "".join(token_text[idx_s:idx_e])
+                                ocr_info_new["transcription"] = "".join(token_text[idx_s:idx_e]).replace("▁", "")  # fmt: skip
                                 ocr_info_new["pred_id"] = pred_id
-                                ocr_info_new["pred"] = self.id2label_map_for_show[pred_id]
+                                ocr_info_new["pred"] = self.id2label_map_for_show[
+                                    pred_id
+                                ]
 
                                 ocr_info.append(ocr_info_new)
-
+                                print(ocr_info_new["transcription"])
                             idx_s = idx_e
-                            
+
                     else:
                         pred_id = np.argmax(counts)
                         ocr_info[idx]["pred_id"] = int(pred_id)

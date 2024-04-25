@@ -6,7 +6,7 @@ Global:
   save_model_dir: ./output/ser_vi_layoutxlm_new
   save_epoch_step: 2000
   # evaluation is run every 10 iterations after the 0th iteration
-  eval_batch_step: [ 0, 50 ]
+  eval_batch_step: [ 0, 19 ]
   cal_metric_during_train: False
   save_inference_dir:
   use_visualdl: False
@@ -103,9 +103,9 @@ Train:
 Eval:
   dataset:
     name: SimpleDataSet
-    data_dir: dataset/data_current/data_train
+    data_dir: /home/yaiba/project/KIE/dataset/data_train
     label_file_list:
-      - dataset/data_current/val.json
+      - /home/yaiba/Downloads/C002/Label.json
     transforms:
       - DecodeImage: # load image
           img_mode: RGB

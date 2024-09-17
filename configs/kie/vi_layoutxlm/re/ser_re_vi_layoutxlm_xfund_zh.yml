@@ -1,0 +1,63 @@
+Global:
+  use_gpu: True
+  d2s_train_image_shape: [3, 224, 224]
+  amp_custom_white_list: ['scale', 'concat', 'elementwise_add']
+  infer_mode: True
+
+Architecture:
+  model_type: kie
+  algorithm: &algorithm "LayoutXLM"
+  Transform:
+  Backbone:
+    name: LayoutXLMForSer
+    pretrained: True
+    checkpoints: ckpts/ser_re_vi_layoutxlm_2708/best_model
+    # one of base or vi
+    mode: vi
+    num_classes: &num_classes 25
+
+Loss:
+  name: VQASerTokenLayoutLMLoss
+  num_classes: *num_classes
+  key: "backbone_out"
+
+PostProcess:
+  name: VQASerTokenLayoutLMPostProcess
+  class_path: &class_path ./configs/kie/vi_layoutxlm/re/class_list_xfun.txt
+
+Metric:
+  name: VQASerTokenMetric
+  main_indicator: hmean
+
+Eval:
+  dataset:
+    transforms:
+      - DecodeImageV2: # load image
+          img_mode: RGB
+          channel_first: False
+      - VQATokenLabelEncode: # Class handling label
+          contains_re: False
+          algorithm: *algorithm
+          class_path: *class_path
+          use_textline_bbox_info: True
+          order_method: tb-yx
+      - VQATokenPad:
+          max_seq_len: &max_seq_len 512
+          return_attention_mask: True
+      - VQASerTokenChunk:
+          max_seq_len: *max_seq_len
+      - Resize:
+          size: [224,224]
+      - NormalizeImage:
+          scale: 1
+          mean: [ 123.675, 116.28, 103.53 ]
+          std: [ 58.395, 57.12, 57.375 ]
+          order: 'hwc'
+      - ToCHWImage:
+      - KeepKeys:
+          keep_keys: [ 'input_ids', 'bbox', 'attention_mask', 'token_type_ids', 'image', 'labels'] # dataloader will return list in this order
+  loader:
+    shuffle: False
+    drop_last: False
+    batch_size_per_card: 8
+    num_workers: 4

@@ -1,9 +1,9 @@
 python3 tools/infer_kie_token_ser.py \
   -c configs/kie/vi_layoutxlm/ser_vi_layoutxlm_custom.yml \
   -o Architecture.Backbone.checkpoints=./output/ser_vi_layoutxlm_new/best_model \
-  Global.infer_img=/home/yaiba/project/KIE/dataset/data_train/C004 \
+  Global.infer_img=/home/yaiba/project/KIE/dataset/data_train/C006 \
   Global.save_res_path=output/ser/jianshe_1 \
-  Global.infer_mode=Falsea
+  Global.infer_mode=True
 
 
 

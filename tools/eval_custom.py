@@ -153,5 +153,5 @@ def main():
         
 
 if __name__ == "__main__":
-    config, device, logger, vdl_writer = program.preprocess()
+    config, device, logger, vdl_writer = program.preprocess(is_val=True)
     main()

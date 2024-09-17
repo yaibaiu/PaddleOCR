@@ -156,7 +156,9 @@ if __name__ == "__main__":
                 os.path.splitext(os.path.basename(img_path))[0] + "_ser.jpg",
             )
 
-            result, _ = ser_engine(data)
+            result, ser_inputs = ser_engine(data)
+            # print(result)
+            # print(ser_inputs)
             result = result[0]
             fout.write(
                 img_path
@@ -179,3 +181,11 @@ if __name__ == "__main__":
             )
 
             # break
+
+    # data = {"img_path": "/home/yaiba/project/KIE/dataset/data_train/C001/C001_1.jpg"}
+    # result, ser_inputs = ser_engine(data)
+    # print(result)
+    # print(ser_inputs[8][0])
+    # print(len(result[0]))
+    # print(len(ser_inputs[8][0]))
+    # assert len(result[0]) == len(ser_inputs[8][0])

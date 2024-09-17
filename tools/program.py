@@ -631,7 +631,7 @@ def get_center(model, eval_dataloader, post_process_class):
     return char_center
 
 
-def preprocess(is_train=False):
+def preprocess(is_train=False, is_val=False):
     FLAGS = ArgsParser().parse_args()
     profiler_options = FLAGS.profiler_options
     config = load_config(FLAGS.config)
@@ -647,9 +647,13 @@ def preprocess(is_train=False):
             yaml.dump(
                 dict(config), f, default_flow_style=False, sort_keys=False)
         log_file = '{}/train.log'.format(save_model_dir)
+        logger = get_logger(log_file=log_file)
+    elif is_val:
+        log_file = "/home/yaiba/project/KIE/PaddleOCR/output/eval/val.log"
+        logger = get_logger(name="eval_ser", log_file=log_file)
     else:
         log_file = None
-    logger = get_logger(log_file=log_file)
+        logger = get_logger(log_file=log_file)
 
     # check if set use_gpu=True in paddlepaddle cpu version
     use_gpu = config['Global'].get('use_gpu', False)

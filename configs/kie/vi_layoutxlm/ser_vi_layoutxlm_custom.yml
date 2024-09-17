@@ -33,7 +33,7 @@ Architecture:
     checkpoints:
     # one of base or vi
     mode: vi
-    num_classes: &num_classes 29
+    num_classes: &num_classes 33
 
 Loss:
   name: VQASerTokenLayoutLMLoss
@@ -52,7 +52,7 @@ Optimizer:
   regularizer:
     name: L2
     factor: 0.00000
-    
+
 PostProcess:
   name: VQASerTokenLayoutLMPostProcessCustom
   class_path: &class_path dataset/data_current/class_list.txt

@@ -148,12 +148,13 @@ class VQASerTokenLayoutLMPostProcessCustom(object):
                     decode_out_list[i].append(self.id2label_map[pred_idxs[i, j]])
         return decode_out_list, label_decode_out_list
 
-    def _infer(self, preds, segment_offset_ids, ocr_infos):
+    def _infer(self, preds, segment_offset_ids, ocr_infos, for_label=True):
         results = []
 
         for pred, segment_offset_id, ocr_info in zip(
             preds, segment_offset_ids, ocr_infos
         ):
+            prob_pred = np.max(pred, axis=1)
             pred = np.argmax(pred, axis=1)
             pred = [self.id2label_map[idx] for idx in pred]
 
@@ -165,6 +166,7 @@ class VQASerTokenLayoutLMPostProcessCustom(object):
 
                 end_id = segment_offset_id[idx]
 
+                curr_prob_pred = prob_pred[start_id:end_id]
                 curr_pred = pred[start_id:end_id]
                 curr_pred = [self.label2id_map_for_draw[p] for p in curr_pred]
 
@@ -178,8 +180,6 @@ class VQASerTokenLayoutLMPostProcessCustom(object):
                         token_text = self.tokenizer.tokenize(
                             ocr_info[idx]["transcription"]
                         )
-                        print(token_text)
-                        print(curr_pred)
                         if curr_pred[0] == "▁":
                             counts = np.bincount(curr_pred[1:])
                             idx_s = 1
@@ -188,8 +188,9 @@ class VQASerTokenLayoutLMPostProcessCustom(object):
 
                         while idx_s < len(curr_pred):
                             c += 1
+                            # idx_e = idx_s + counts[curr_pred[idx_s]]
                             pred_id = int(curr_pred[idx_s])
-                            # idx_e = idx_s + counts[pred_id]
+
                             idx_e = idx_s
                             while (
                                 idx_e < len(curr_pred)
@@ -198,34 +199,37 @@ class VQASerTokenLayoutLMPostProcessCustom(object):
                                 idx_e += 1
 
                             if c == 1:
-                                print("----------")
-                                print(ocr_info[idx]["transcription"])
                                 ocr_info[idx]["transcription"] = "".join(token_text[idx_s:idx_e]).replace("▁", "")  # fmt: skip
                                 ocr_info[idx]["pred_id"] = pred_id
                                 ocr_info[idx]["pred"] = self.id2label_map_for_show[
                                     pred_id
                                 ]
-                                print(ocr_info[idx]["transcription"])
-
+                                # ocr_info[idx]["conf"] = np.max(
+                                #     curr_prob_pred[idx_s:idx_e]
+                                # )
                             else:
-                                print("+++++++++++")
                                 ocr_info_new = {}
                                 ocr_info_new["bbox"] = ocr_info[idx]["bbox"]
                                 ocr_info_new["points"] = ocr_info[idx]["points"]
-                                ocr_info_new["transcription"] = "".join(token_text[idx_s:idx_e]).replace("▁", "")  # fmt: skip
+                                if not for_label:
+                                    ocr_info_new["transcription"] = "".join(token_text[idx_s:idx_e]).replace("▁", "")  # fmt: skip
+                                else:
+                                    ocr_info_new["transcription"] = "▁" + "".join(token_text[idx_s:idx_e]).replace("▁", "")  # fmt: skip
                                 ocr_info_new["pred_id"] = pred_id
                                 ocr_info_new["pred"] = self.id2label_map_for_show[
                                     pred_id
                                 ]
-
+                                # ocr_info_new["conf"] = np.max(
+                                #     curr_prob_pred[idx_s:idx_e]
+                                # )
                                 ocr_info.append(ocr_info_new)
-                                print(ocr_info_new["transcription"])
                             idx_s = idx_e
 
                     else:
                         pred_id = np.argmax(counts)
                         ocr_info[idx]["pred_id"] = int(pred_id)
                         ocr_info[idx]["pred"] = self.id2label_map_for_show[int(pred_id)]
+                        # ocr_info[idx]["conf"] = np.max(curr_prob_pred)
 
             results.append(ocr_info)
         return results

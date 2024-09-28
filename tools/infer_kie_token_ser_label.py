@@ -129,7 +129,7 @@ if __name__ == "__main__":
     ser_engine = SerPredictor(config)
 
     bank_path_list = os.listdir(config["Global"]["infer_img"])
-    bank_path_list = ["C513"]
+    bank_path_list = ["C512_1"]
     for bank_name in bank_path_list:
         bank_path = os.path.join(config["Global"]["infer_img"], bank_name)
         infer_imgs = get_image_file_list(bank_path)
